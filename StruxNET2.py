@@ -1,4 +1,4 @@
-# before we start: I Made this Project for education and to suprise my Professors (I "study" it so not in the bad way lol)
+# before we start: I Made this Project for education and to suprise my Professors (I "study" IT so not in the bad way lol)
 # Just be carefull and yea. Credits: I used snippets from malware_showcase by PatrikH0lop and overwork them a little bit
 
 # Version 1.0
