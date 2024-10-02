@@ -10,10 +10,6 @@ A Python-based Malware that reproducet itself. Its a demo/education project for 
 - Improved SSH Worm to spread in the internal network (not tested)
 - Detect System Platforms
 
-**New to version 1.4**
-* added --install-ffmpeg argument and installer (requires winget)
-* replaces pyTube with yt_dlp
-* Removed test Features
 
 **Planed**
 - AV Bypass
