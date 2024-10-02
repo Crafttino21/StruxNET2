@@ -42,4 +42,4 @@ Open a console in the directory and type `pip install -r requirements.txt`
 To start simply type `python3 StruxNET2.py`  
  
 
-
+Credits: I used some code from [Here](https://github.com/PatrikH0lop/malware_showcase/tree/master) and improved/change it but still used some parts from there
