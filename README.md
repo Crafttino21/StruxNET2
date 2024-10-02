@@ -12,6 +12,7 @@ A Python-based Malware that reproducet itself. Its a demo/education project for 
 
 
 **Planed**
+- Comment all functions
 - AV Bypass
 - UAC Bypass
 - VM Detection (Maybe)
@@ -38,7 +39,7 @@ Soon More, Fell free to post ideas in Issues Tab :)
      
 **Once Installed**  
 Open a console in the directory and type `pip install -r requirements.txt`  
-To start simply type `python3 cStruxNET2.py`  
+To start simply type `python3 StruxNET2.py`  
  
 
 
