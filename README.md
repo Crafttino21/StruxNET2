@@ -4,7 +4,7 @@ A Python-based Malware that reproducet itself. Its a demo/education project for 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X8X7MF230)
 
 
-**DISCLAIMER: This is for education Purpose ONLY! I dont support any kind of illigal activitys!**
+**DISCLAIMER: This is for education Purpose ONLY! I dont support any kind of illegal activitys!**
 
 **1.0 Functions**
 - Improved SSH Worm to spread in the internal network (not tested)
