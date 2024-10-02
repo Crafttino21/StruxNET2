@@ -5,6 +5,7 @@ A Python-based Malware that reproducet itself. Its a demo/education project for 
 
 
 **DISCLAIMER: This is for education Purpose ONLY! I dont support any kind of illegal activitys!**
+**This Project is still Work-on-Progress**
 
 **1.0 Functions**
 - Improved SSH Worm to spread in the internal network (not tested)
